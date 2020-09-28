@@ -96,7 +96,8 @@ public class TestEmailResource {
       BaseEmailModel baseEmailModel =
           emailManager.generateOrganizationPasswordReminderEmailModel(
               organization, contact, email);
-      emailSender.send(baseEmailModel);
+      BaseEmailModel baseEmailModel2 = copyAndSetCustomEmailAddress(baseEmailModel, email);
+      emailSender.send(baseEmailModel2);
     }
   }
 
