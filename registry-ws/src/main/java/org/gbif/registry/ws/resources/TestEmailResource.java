@@ -26,6 +26,7 @@ import org.gbif.registry.mail.BaseEmailModel;
 import org.gbif.registry.mail.EmailSender;
 import org.gbif.registry.mail.organization.OrganizationEmailManager;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -67,7 +68,9 @@ public class TestEmailResource {
               required = false,
               defaultValue = "02c40d2a-1cba-4633-90b7-e36e5e97aba8")
           UUID endorsingNodeKey,
-      @RequestParam(value = "type", required = false, defaultValue = "endorsement") String type)
+      @RequestParam(value = "type", required = false, defaultValue = "endorsement") String type,
+      @RequestParam(value = "email", required = false, defaultValue = "mpodolskiy@gbif.org")
+          String email)
       throws Exception {
     Organization organization = organizationService.get(organizationKey);
 
@@ -78,20 +81,30 @@ public class TestEmailResource {
       BaseEmailModel baseEmailModel =
           emailManager.generateOrganizationEndorsementEmailModel(
               organization, nodeManager, UUID.randomUUID(), endorsingNode);
-      emailSender.send(baseEmailModel);
+      BaseEmailModel baseEmailModel2 = copyAndSetCustomEmailAddress(baseEmailModel, email);
+      emailSender.send(baseEmailModel2);
     } else if ("endorsed".equals(type)) {
       Node endorsingNode = nodeService.get(endorsingNodeKey);
 
       List<BaseEmailModel> baseEmailModels =
           emailManager.generateOrganizationEndorsedEmailModel(organization, endorsingNode);
-      baseEmailModels.forEach(emailSender::send);
+      BaseEmailModel baseEmailModel = copyAndSetCustomEmailAddress(baseEmailModels.get(0), email);
+      emailSender.send(baseEmailModel);
     } else {
       Contact contact = new Contact();
       contact.setFirstName("Mike");
       BaseEmailModel baseEmailModel =
           emailManager.generateOrganizationPasswordReminderEmailModel(
-              organization, contact, "mpodolskiy@gbif.org");
+              organization, contact, email);
       emailSender.send(baseEmailModel);
     }
+  }
+
+  private BaseEmailModel copyAndSetCustomEmailAddress(BaseEmailModel another, String email) {
+    return new BaseEmailModel(
+        Collections.singleton(email),
+        another.getSubject(),
+        another.getBody(),
+        another.getCcAddresses());
   }
 }
