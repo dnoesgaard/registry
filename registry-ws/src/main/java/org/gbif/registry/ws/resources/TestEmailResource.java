@@ -105,6 +105,6 @@ public class TestEmailResource {
         Collections.singleton(email),
         another.getSubject(),
         another.getBody(),
-        another.getCcAddresses());
+        Collections.emptySet());
   }
 }
